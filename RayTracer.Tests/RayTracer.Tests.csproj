@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>_02_RayTracing.Tests</RootNamespace>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>RayTracer.Tests</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\02-RayTracing\02-RayTracing.csproj" />
+    <ProjectReference Include="..\RayTracer\RayTracer.csproj" />
   </ItemGroup>
 
 </Project>

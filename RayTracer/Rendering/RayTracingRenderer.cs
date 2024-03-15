@@ -7,14 +7,14 @@ using _02_RayTracing.Models;
 
 namespace _02_RayTracing.Rendering;
 
-public class BasicRenderer
+public class RayTracingRenderer
 {
     private const float P_FOR_RECURSION = 0.25f;
     private const float GAUSS_SIGMA = 0.5f;
     private int raysPerPixel;
     public Vector3[,] CurrentRendering { get; set; }
 
-    public BasicRenderer(int raysPerPixel)
+    public RayTracingRenderer(int raysPerPixel)
     {
         this.raysPerPixel = raysPerPixel;
     }

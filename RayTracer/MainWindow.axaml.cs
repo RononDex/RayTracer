@@ -31,7 +31,7 @@ public partial class MainWindow : Window
         /* imageRenderingTask = renderer.RenderSceneAsync(scene, 1000, 1000); */
         /* var renderer = new BasicRenderer(20000); */
         /* imageRenderingTask = renderer.RenderSceneAsync(scene, 500, 500); */
-        var renderer = new BasicRenderer(10000);
+        var renderer = new RayTracingRenderer(1000);
         imageRenderingTask = renderer.RenderSceneAsync(scene, 100, 100);
 
         timer = new System.Threading.Timer((e) =>
@@ -40,7 +40,7 @@ public partial class MainWindow : Window
         }, null, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(200));
     }
 
-    public void PeriodicFooAsync(BasicRenderer renderer)
+    public void PeriodicFooAsync(RayTracingRenderer renderer)
     {
         if (renderer.CurrentRendering != null)
         {
