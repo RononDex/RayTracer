@@ -1,8 +1,8 @@
 
 using System.Numerics;
-using _02_RayTracing.Rendering;
+using RayTracer.Rendering;
 
-namespace _02_RayTracing.Materials;
+namespace RayTracer.Materials;
 public interface IMaterial
 {
 

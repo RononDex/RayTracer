@@ -1,10 +1,10 @@
 
 using System.Collections.Generic;
 using System.Numerics;
-using _02_RayTracing.Materials;
-using _02_RayTracing.Rendering;
+using RayTracer.Materials;
+using RayTracer.Rendering;
 
-namespace _02_RayTracing.Models;
+namespace RayTracer.Models;
 public interface IGeometry
 {
     public Vector3 Position { get; set; }

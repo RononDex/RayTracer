@@ -4,7 +4,7 @@ using System.Numerics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace _02_RayTracing.Rendering;
+namespace RayTracer.Rendering;
 
 public static class RenderingToImage
 {
@@ -40,8 +40,10 @@ public static class RenderingToImage
 
     public static void ClampColors(Vector3[,] colors)
     {
-        for (var x = 0; x < colors.GetLength(0); x++) {
-            for (var y = 0; y < colors.GetLength(1); y++) {
+        for (var x = 0; x < colors.GetLength(0); x++)
+        {
+            for (var y = 0; y < colors.GetLength(1); y++)
+            {
                 colors[x, y] = Vector3.Clamp(colors[x, y], Vector3.Zero, Vector3.One);
             }
         }

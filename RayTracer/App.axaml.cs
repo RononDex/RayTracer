@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace _02_RayTracing;
+namespace RayTracer;
 
 public partial class App : Application
 {

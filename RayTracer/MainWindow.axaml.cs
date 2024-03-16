@@ -2,22 +2,23 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using _02_RayTracing.Rendering;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using RayTracer.Rendering;
 using SixLabors.ImageSharp;
 using Color = Avalonia.Media.Color;
 using Image = Avalonia.Controls.Image;
 
-namespace _02_RayTracing;
+namespace RayTracer;
 
 public partial class MainWindow : Window
 {
-    Timer timer;
-    Task imageRenderingTask;
-    bool saved = false;
+    private readonly Timer timer;
+    private readonly Task imageRenderingTask;
+    private bool saved;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -32,12 +33,9 @@ public partial class MainWindow : Window
         /* var renderer = new BasicRenderer(20000); */
         /* imageRenderingTask = renderer.RenderSceneAsync(scene, 500, 500); */
         var renderer = new RayTracingRenderer(1000);
-        imageRenderingTask = renderer.RenderSceneAsync(scene, 100, 100);
+        this.imageRenderingTask = renderer.RenderSceneAsync(scene, 256, 256);
 
-        timer = new System.Threading.Timer((e) =>
-        {
-            PeriodicFooAsync(renderer);
-        }, null, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(200));
+        this.timer = new Timer((e) => this.PeriodicFooAsync(renderer), null, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(200));
     }
 
     public void PeriodicFooAsync(RayTracingRenderer renderer)
@@ -49,18 +47,17 @@ public partial class MainWindow : Window
             Dispatcher.UIThread.Post(() =>
             {
                 var img = this.FindControl<Image>("img")!;
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    image.Save(memoryStream, new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder());
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    img.Source = new Bitmap(memoryStream);
-                }
+                using var memoryStream = new MemoryStream();
+                image.Save(memoryStream, new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder());
+                _ = memoryStream.Seek(0, SeekOrigin.Begin);
+                img.Source = new Bitmap(memoryStream);
             }, DispatcherPriority.Render);
 
-            if (imageRenderingTask.IsCompleted && !saved)
+            if (this.imageRenderingTask.IsCompleted && !this.saved)
             {
-                saved = true;
+                this.saved = true;
                 image.SaveAsPng("Rendering_" + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".png");
+                this.timer.Dispose();
             }
         }
     }

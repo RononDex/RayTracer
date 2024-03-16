@@ -1,13 +1,13 @@
 using System.Numerics;
-using _02_RayTracing.Models;
+using RayTracer.Models;
 
-namespace _02_RayTracing.Rendering;
+namespace RayTracer.Rendering;
 
 public class HitPoint
 {
     public Vector3 Position { get; private set; }
 
-    public Vector3 SurfaceNormal { get; private set;}
+    public Vector3 SurfaceNormal { get; private set; }
 
     public IGeometry HitObject { get; private set; }
 

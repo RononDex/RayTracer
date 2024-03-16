@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using _02_RayTracing.Materials;
-using _02_RayTracing.Models;
+using RayTracer.Materials;
+using RayTracer.Models;
 
-namespace _02_RayTracing;
+namespace RayTracer;
 
 public static class SceneBuilder
 {
@@ -153,8 +153,8 @@ public static class SceneBuilder
 
         var milkyWayRotation = Matrix4x4.CreateRotationY(-0.3f) * Matrix4x4.CreateRotationZ(MathF.PI / 4 + 0.1f) * Matrix4x4.CreateRotationY(2 * MathF.PI / 2);
         var jupiterRotation = Matrix4x4.CreateRotationY(0f);
-		var jupiterPos = new Vector3(-1.0f, -0.25f, 8.2f);
-		var sunPos = new Vector3(25f, 0f, -15f);
+        var jupiterPos = new Vector3(-1.0f, -0.25f, 8.2f);
+        var sunPos = new Vector3(25f, 0f, -15f);
 
         var scene = new Scene(new List<IGeometry> {
                         // Milkyway bg

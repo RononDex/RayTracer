@@ -1,7 +1,7 @@
-﻿using Avalonia;
 using System;
+using Avalonia;
 
-namespace _02_RayTracing;
+namespace RayTracer;
 
 class Program
 {

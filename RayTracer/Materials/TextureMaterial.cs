@@ -1,11 +1,11 @@
 
 using System;
 using System.Numerics;
-using _02_RayTracing.Rendering;
+using RayTracer.Rendering;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace _02_RayTracing.Materials;
+namespace RayTracer.Materials;
 
 public class TextureMaterial : IMaterial
 {
@@ -95,7 +95,8 @@ public class TextureMaterial : IMaterial
 
     public Vector3 GetEmission(HitPoint hitPoint)
     {
-        if (this.EmissionTexture == null) return noEmission;
+        if (this.EmissionTexture == null)
+            return noEmission;
 
         var normal = hitPoint.SurfaceNormal;
         (var x, var y) = SphericalProjection(normal, this.EmissionTexture!);
