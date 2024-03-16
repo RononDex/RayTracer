@@ -25,17 +25,17 @@ public partial class MainWindow : Window
 
         this.Background = new SolidColorBrush(new Color(255, 0, 0, 0));
 
-        var scene = SceneBuilder.CornellBox();
+        var scene = SceneBuilder.CornellBoxReflections();
 
         Console.WriteLine("Starting rendering scene...");
         /* var renderer = new BasicRenderer(20000); */
         /* imageRenderingTask = renderer.RenderSceneAsync(scene, 1000, 1000); */
         /* var renderer = new BasicRenderer(20000); */
         /* imageRenderingTask = renderer.RenderSceneAsync(scene, 500, 500); */
-        var renderer = new RayTracingRenderer(1000);
-        this.imageRenderingTask = renderer.RenderSceneAsync(scene, 256, 256);
+        var renderer = new RayTracingRenderer(4000);
+        this.imageRenderingTask = renderer.RenderSceneAsync(scene, 512, 512);
 
-        this.timer = new Timer((e) => this.PeriodicFooAsync(renderer), null, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(200));
+        this.timer = new Timer((e) => this.PeriodicFooAsync(renderer), null, TimeSpan.FromMilliseconds(200), TimeSpan.FromMilliseconds(300));
     }
 
     public void PeriodicFooAsync(RayTracingRenderer renderer)

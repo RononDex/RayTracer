@@ -45,7 +45,7 @@ public class ReflectiveSpecularMaterial : IMaterial
 
         if (Vector3.Dot(inDirection, reflectionDirection) > (1f - this.ReflectionEpsilon))
         {
-            return this.DiffuseColor / MathF.PI + this.ReflectionMultiplier * SpecularColor;
+            return (this.DiffuseColor / MathF.PI) + (this.ReflectionMultiplier * this.SpecularColor);
         }
         else
         {
@@ -53,5 +53,5 @@ public class ReflectiveSpecularMaterial : IMaterial
         }
     }
 
-    public Vector3 GetEmission(HitPoint hitPoint) => EmissionColor;
+    public Vector3 GetEmission(HitPoint hitPoint) => this.EmissionColor;
 }
