@@ -209,10 +209,10 @@ public static class SceneBuilder
 
                         // Smaller lense sphere in front
                         new Sphere(new Vector3(0.3f, -0.8f, -0.6f), 0.2f, new TransparentMaterial(1.1f)),
-                        new Sphere(new Vector3(-0.3f, -0.85f, -0.7f), 0.15f, new TransparentMaterial(1.2f)),
+                        new Sphere(new Vector3(-0.3f, -0.85f, -0.7f), 0.15f, new TransparentMaterial(1.5f, new LambertMaterial(new Vector3(1.0f, 0.1f, 0.1f)))),
     }, eyePosition, lookAt, fov, new Vector3(0f, 1f, 0f))
         {
-            NumberOfBounces = 10
+            NumberOfBounces = 6
         };
 
         return scene;

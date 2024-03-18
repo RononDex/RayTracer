@@ -21,7 +21,7 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
-        InitializeComponent();
+        this.InitializeComponent();
 
         this.Background = new SolidColorBrush(new Color(255, 0, 0, 0));
 

@@ -80,7 +80,7 @@ public class RayTracingRenderer(int raysPerPixel)
                 scene.LookAtPosition,
                 scene.Up,
                 scene.FieldOfView,
-                scene.FieldOfView * ((float)height / (float)width),
+                scene.FieldOfView * (height / (float)width),
                 screenSpace,
                 2f / width,
                 2f / height,
@@ -135,9 +135,10 @@ public class RayTracingRenderer(int raysPerPixel)
 
                 if (!isReflection)
                 {
-                    var refractedDirection = quotient * ray.Direction + ((quotient * cosine - MathF.Sqrt(1 - ((quotient * quotient) * (1 - (cosine * cosine))))) * closestHitPoint.SurfaceNormal);
+                    var refractedDirection = quotient * ray.Direction + (((quotient * cosine) - MathF.Sqrt(1 - (quotient * quotient * (1 - (cosine * cosine))))) * closestHitPoint.SurfaceNormal);
+                    var inDirection = ray.Direction;
                     var refractedRay = new Ray(closestHitPoint.Position, Vector3.Normalize(refractedDirection), closestHitPoint.HitObject);
-                    return GetColorRecursive(scene, refractedRay, pRecursion, depth + 1);
+                    return MathF.PI * closestHitPoint.HitObject.Material.BRDFS(ref inDirection, ref refractedDirection, closestHitPoint) * GetColorRecursive(scene, refractedRay, pRecursion, depth + 1);
                 }
                 else
                 {
