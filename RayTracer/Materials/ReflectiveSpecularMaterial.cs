@@ -15,6 +15,7 @@ public class ReflectiveSpecularMaterial : IMaterial
 
     private float ReflectionMultiplier { get; set; }
     private float ReflectionEpsilon { get; set; }
+    public float RefractionIndex => 1.0f;
 
     public ReflectiveSpecularMaterial(
             Vector3 diffuseColor,
@@ -54,4 +55,6 @@ public class ReflectiveSpecularMaterial : IMaterial
     }
 
     public Vector3 GetEmission(HitPoint hitPoint) => this.EmissionColor;
+
+    public bool HasRefraction => false;
 }

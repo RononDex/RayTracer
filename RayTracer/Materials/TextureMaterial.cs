@@ -9,6 +9,8 @@ namespace RayTracer.Materials;
 
 public class TextureMaterial : IMaterial
 {
+    public float RefractionIndex => 1.0f;
+
     public string? PathToTexture { get; private set; }
 
     public Image<Rgb24> Texture { get; private set; }
@@ -135,4 +137,6 @@ public class TextureMaterial : IMaterial
         nonLinearColor.Y = MathF.Pow(nonLinearColor.Y / 255, gamma);
         nonLinearColor.Z = MathF.Pow(nonLinearColor.Z / 255, gamma);
     }
+
+    public bool HasRefraction => false;
 }

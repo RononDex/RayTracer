@@ -37,7 +37,7 @@ public class Sphere : IGeometry
         {
             var sqrt = MathF.Sqrt(b_squared - quotient);
             var lambda_1 = (-b + sqrt) / 2;
-            if (lambda_1 > 0)
+            if (lambda_1 > 0 && lambda_1 > EPSILON)
             {
                 var hitLocation1 = ray.Origin + ((lambda_1 - EPSILON) * ray.Direction);
                 hitpoints.Add(new HitPoint(hitLocation1, this, Vector3.Normalize(hitLocation1 - this.Position)));
@@ -45,7 +45,7 @@ public class Sphere : IGeometry
             if (b_squared > quotient)
             {
                 var lambda_2 = (-b - sqrt) / 2;
-                if (lambda_2 > 0)
+                if (lambda_2 > 0 && lambda_2 > EPSILON)
                 {
                     var hitLocation2 = ray.Origin + ((lambda_2 - EPSILON) * ray.Direction);
                     hitpoints.Add(new HitPoint(hitLocation2, this, Vector3.Normalize(hitLocation2 - this.Position)));

@@ -10,6 +10,8 @@ public class LambertMaterial : IMaterial
     public Vector3 DiffuseColor { get; private set; }
     public Vector3 EmissionColor { get; private set; }
 
+    public float RefractionIndex => 1.0f;
+
     public LambertMaterial(Vector3 diffuseColor, Vector3? emissionColor = null)
     {
         this.DiffuseColor = diffuseColor;
@@ -29,4 +31,6 @@ public class LambertMaterial : IMaterial
     }
 
     public Vector3 GetEmission(HitPoint hitPoint) { return this.EmissionColor; }
+
+    public bool HasRefraction => false;
 }

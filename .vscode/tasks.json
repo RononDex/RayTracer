@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/02-RayTracing/02-RayTracing.csproj",
+                "${workspaceFolder}/RayTracer/RayTracer.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

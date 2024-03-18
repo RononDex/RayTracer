@@ -179,4 +179,42 @@ public static class SceneBuilder
 
         return scene;
     }
+
+    public static Scene CornellBoxTransparency()
+    {
+        var eyePosition = new Vector3(0, 0, -4);
+        var lookAt = new Vector3(0, 0, 6);
+        var fov = 36f * (float)Math.PI / 180f;
+        var scene = new Scene(new List<IGeometry> {
+                        // a: Left wall (red)
+                        new Sphere(new Vector3(-1001, 0, 0), 1000, new LambertMaterial(new Vector3(0.95f, 0.1f, 0.1f))),
+
+                        // b: Right wall (blue)
+                        new Sphere(new Vector3(1001, 0, 0), 1000, new LambertMaterial(new Vector3(0.1f, 0.1f, 0.95f))),
+
+                        // c: Back wall (gray)
+                        new Sphere(new Vector3(0, 0, 1001), 1000, new LambertMaterial(new Vector3(0.4f, 0.4f, 0.4f))),
+
+                        // d: Bottom wall (gray)
+                        new Sphere(new Vector3(0, -1001, 0), 1000, new LambertMaterial(new Vector3(0.4f, 0.4f, 0.4f))),
+
+                        // e: Top wall (light)
+                        new Sphere(new Vector3(0, 1001, 0), 1000, new LambertMaterial(new Vector3(0.8f, 0.8f, 0.8f), emissionColor: new Vector3(2f))),
+
+                        // f: Smaller Sphere (black marble)
+                        new Sphere(new Vector3(-0.6f, -0.7f, -0.3f), 0.3f, new TextureMaterial("Textures/close-up-black-marble-background.jpg", specularColor: new Vector3(1), specularMultiplier: 1.8f)),
+
+                        // g: Bigger sphere (sun)
+                        new Sphere(new Vector3(0.3f, -0.4f, 0.3f), 0.6f, new TextureMaterial("Textures/4k_haumea_fictional.jpg",emissionMultiplier: 15f)),
+
+                        // Smaller lense sphere in front
+                        new Sphere(new Vector3(0.3f, -0.8f, -0.6f), 0.2f, new TransparentMaterial(1.1f)),
+                        new Sphere(new Vector3(-0.3f, -0.85f, -0.7f), 0.15f, new TransparentMaterial(1.2f)),
+    }, eyePosition, lookAt, fov, new Vector3(0f, 1f, 0f))
+        {
+            NumberOfBounces = 10
+        };
+
+        return scene;
+    }
 }
