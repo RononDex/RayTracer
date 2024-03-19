@@ -35,7 +35,7 @@ public partial class MainWindow : Window
         var renderer = new RayTracingRenderer(4000);
 
         this.timer = new Timer((e) => this.PeriodicFooAsync(renderer), null, TimeSpan.FromMilliseconds(200), TimeSpan.FromMilliseconds(300));
-        this.imageRenderingTask = renderer.RenderSceneAsync(scene, 1024, 1024);
+        this.imageRenderingTask = renderer.RenderSceneAsync(scene, 2048, 2048);
     }
 
     public void PeriodicFooAsync(RayTracingRenderer renderer)

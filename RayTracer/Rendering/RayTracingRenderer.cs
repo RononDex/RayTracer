@@ -12,9 +12,9 @@ public class RayTracingRenderer(int raysPerPixel)
     private readonly int raysPerPixel = raysPerPixel;
     public Vector3[,] CurrentRendering { get; set; }
 
-    public async Task<Vector3[,]> RenderSceneAsync(Scene scene, int width, int height)
+    public Task<Vector3[,]> RenderSceneAsync(Scene scene, int width, int height)
     {
-        return await Task.Run(() =>
+        return Task.Run(() =>
         {
             this.CurrentRendering = new Vector3[width, height];
             var columns = this.CurrentRendering.GetUpperBound(1) + 1;
@@ -144,7 +144,8 @@ public class RayTracingRenderer(int raysPerPixel)
                 {
                     var reflectedDirection = Vector3.Normalize(Vector3.Reflect(ray.Direction, closestHitPoint.SurfaceNormal));
                     var reflectedRay = new Ray(closestHitPoint.Position, Vector3.Normalize(reflectedDirection), closestHitPoint.HitObject);
-                    return GetColorRecursive(scene, reflectedRay, pRecursion, depth + 1);
+                    var inDirection = ray.Direction;
+                    return MathF.PI * closestHitPoint.HitObject.Material.BRDFS(ref inDirection, ref reflectedDirection, closestHitPoint) * GetColorRecursive(scene, reflectedRay, pRecursion, depth + 1);
                 }
             }
             else

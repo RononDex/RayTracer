@@ -202,14 +202,14 @@ public static class SceneBuilder
                         new Sphere(new Vector3(0, 1001, 0), 1000, new LambertMaterial(new Vector3(0.8f, 0.8f, 0.8f), emissionColor: new Vector3(2f))),
 
                         // f: Smaller Sphere (black marble)
-                        new Sphere(new Vector3(-0.6f, -0.7f, -0.3f), 0.3f, new TextureMaterial("Textures/close-up-black-marble-background.jpg", specularColor: new Vector3(1), specularMultiplier: 1.8f)),
+                        new Sphere(new Vector3(-0.6f, -0.7f, 0.3f), 0.3f, new TextureMaterial("Textures/close-up-black-marble-background.jpg", specularColor: new Vector3(1), specularMultiplier: 1.8f)),
 
                         // g: Bigger sphere (sun)
                         new Sphere(new Vector3(0.3f, -0.4f, 0.3f), 0.6f, new TextureMaterial("Textures/4k_haumea_fictional.jpg",emissionMultiplier: 15f)),
 
                         // Smaller lense sphere in front
-                        new Sphere(new Vector3(0.3f, -0.8f, -0.6f), 0.2f, new TransparentMaterial(1.1f)),
-                        new Sphere(new Vector3(-0.3f, -0.85f, -0.7f), 0.15f, new TransparentMaterial(1.5f, new LambertMaterial(new Vector3(1.0f, 0.1f, 0.1f)))),
+                        new Sphere(new Vector3(0.6f, -0.8f, -0.6f), 0.2f, new TransparentMaterial(1.1f, new LambertMaterial(new Vector3(0.6f, 0.9f, 0.9f)))),
+                        new Sphere(new Vector3(-0.1f, -0.7f, -0.7f), 0.3f, new TransparentMaterial(1.4f, new LambertMaterial(new Vector3(0.9f, 0.3f, 0.3f)))),
     }, eyePosition, lookAt, fov, new Vector3(0f, 1f, 0f))
         {
             NumberOfBounces = 6
