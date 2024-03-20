@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using RayTracer.Models;
 using RayTracer.Rendering;
 using SixLabors.ImageSharp;
 using Color = Avalonia.Media.Color;
@@ -17,6 +18,7 @@ public partial class MainWindow : Window
 {
     private readonly Timer timer;
     private readonly Task imageRenderingTask;
+    private readonly DateTime renderingStart;
     private bool saved;
 
     public MainWindow()
@@ -28,17 +30,17 @@ public partial class MainWindow : Window
         var scene = SceneBuilder.CornellBoxTransparency();
 
         Console.WriteLine("Starting rendering scene...");
-        /* var renderer = new BasicRenderer(20000); */
-        /* imageRenderingTask = renderer.RenderSceneAsync(scene, 1000, 1000); */
-        /* var renderer = new BasicRenderer(20000); */
-        /* imageRenderingTask = renderer.RenderSceneAsync(scene, 500, 500); */
-        var renderer = new RayTracingRenderer(4000);
+        var renderer = new RayTracingRenderer();
+        const int width = 512;
+        const int height = 512;
+        const int raysPerPixel = 1000;
 
-        this.timer = new Timer((e) => this.PeriodicFooAsync(renderer), null, TimeSpan.FromMilliseconds(200), TimeSpan.FromMilliseconds(300));
-        this.imageRenderingTask = renderer.RenderSceneAsync(scene, 2048, 2048);
+        this.timer = new Timer((e) => this.UpdateUIWithRendering(renderer, scene, raysPerPixel, width, height), state: null, TimeSpan.FromMilliseconds(0), TimeSpan.FromMilliseconds(200));
+        this.renderingStart = DateTime.Now;
+        this.imageRenderingTask = renderer.RenderSceneAsync(scene, raysPerPixel, width, height, Environment.ProcessorCount - 1);
     }
 
-    public void PeriodicFooAsync(RayTracingRenderer renderer)
+    public void UpdateUIWithRendering(RayTracingRenderer renderer, Scene scene, int raysPerPixel, int width, int height)
     {
         if (renderer.CurrentRendering != null)
         {
@@ -51,10 +53,13 @@ public partial class MainWindow : Window
                 image.Save(memoryStream, new SixLabors.ImageSharp.Formats.Bmp.BmpEncoder());
                 _ = memoryStream.Seek(0, SeekOrigin.Begin);
                 img.Source = new Bitmap(memoryStream);
-            }, DispatcherPriority.Render);
+            }, DispatcherPriority.MaxValue);
 
             if (this.imageRenderingTask.IsCompleted && !this.saved)
             {
+                var renderingTime = DateTime.Now - this.renderingStart;
+                Console.WriteLine($"Rendering finished after {renderingTime.TotalMinutes:0.###} minutes");
+                Console.WriteLine($"Averaged {(int)(raysPerPixel * width * height / renderingTime.TotalSeconds)} rays/s and {(int)(raysPerPixel * scene.NumberOfBounces * width * height / renderingTime.TotalSeconds)} bounces/s");
                 this.saved = true;
                 image.SaveAsPng("Rendering_" + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".png");
                 this.timer.Dispose();

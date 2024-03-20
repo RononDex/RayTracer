@@ -7,28 +7,48 @@ using RayTracer.Models;
 
 namespace RayTracer.Rendering;
 
-public class RayTracingRenderer(int raysPerPixel)
+public class RayTracingRenderer()
 {
-    private readonly int raysPerPixel = raysPerPixel;
     public Vector3[,] CurrentRendering { get; set; }
 
-    public Task<Vector3[,]> RenderSceneAsync(Scene scene, int width, int height)
+    public Task<Vector3[,]> RenderSceneAsync(Scene scene, int raysPerPixel, int width, int height, int nThreads)
     {
+
         return Task.Run(() =>
         {
-            this.CurrentRendering = new Vector3[width, height];
-            var columns = this.CurrentRendering.GetUpperBound(1) + 1;
+            nThreads = int.Min(nThreads, Environment.ProcessorCount);
+            var workPackages = new List<(int startRow, int startColumn, int endRow, int endColumn)>();
+            var curWidth = 0;
+            var curHeight = 0;
+            var packageSize = (int)(3.5 * MathF.Log2(width));
+            while (curWidth < width)
+            {
+                while (curHeight < height)
+                {
+                    workPackages.Add((startRow: curHeight, startColumn: curWidth, endRow: int.Min(curHeight + packageSize - 1, height - 1), endColumn: int.Min(curWidth + packageSize - 1, width - 1)));
+                    curHeight += packageSize;
+                }
+                curWidth += packageSize;
+                curHeight = 0;
+            }
+            workPackages = [.. workPackages.OrderBy(_ => Random.Shared.Next())];
 
-            Enumerable.Range(0, this.CurrentRendering.GetUpperBound(0) + 1)
+            this.CurrentRendering = new Vector3[width, height];
+            workPackages
             .AsParallel()
 #if DEBUG
             .WithDegreeOfParallelism(1)
+#else
+            .WithDegreeOfParallelism(nThreads)
 #endif
-            .ForAll((row) =>
+            .ForAll((package) =>
                     {
-                        for (var col = 0; col < columns; col++)
+                        for (var row = package.startRow; row <= package.endRow; row++)
                         {
-                            this.CurrentRendering[col, row] = this.GetColor(scene, new Vector2(col, row), height, width);
+                            for (var col = package.startColumn; col <= package.endColumn; col++)
+                            {
+                                this.CurrentRendering[col, row] = GetColor(scene, new Vector2(col, row), raysPerPixel, height, width);
+                            }
                         }
                     });
 
@@ -36,13 +56,13 @@ public class RayTracingRenderer(int raysPerPixel)
         });
     }
 
-    public Ray[] CreateEyeRays(Vector3 eyePos, Vector3 lookAt, Vector3 up, float fovHorizontal, float fovVertical, Vector2 pixel, float pixelSizeX, float pixelSizeY, float gauss_sigma)
+    private static Ray[] CreateEyeRays(Vector3 eyePos, Vector3 lookAt, Vector3 up, float fovHorizontal, float fovVertical, Vector2 pixel, float pixelSizeX, float pixelSizeY, float gauss_sigma, int raysPerPixel)
     {
-        var rays = new Ray[this.raysPerPixel];
+        var rays = new Ray[raysPerPixel];
         var f = Vector3.Normalize(lookAt - eyePos);
         var r = Vector3.Cross(up, f);
         var u = Vector3.Cross(f, r);
-        for (var i = 0; i < this.raysPerPixel; i++)
+        for (var i = 0; i < raysPerPixel; i++)
         {
             var locX = pixel.X + (pixelSizeX * RandomGaussian(Random.Shared, 0, MathF.Pow(gauss_sigma, 2)));
             var locY = pixel.Y + (pixelSizeY * RandomGaussian(Random.Shared, 0, MathF.Pow(gauss_sigma, 2)));
@@ -58,7 +78,7 @@ public class RayTracingRenderer(int raysPerPixel)
     public static HitPoint? FindClosestHitPoint(Scene scene, Ray ray)
     {
         HitPoint? closestHitpoint = null;
-        var closestDistance = float.MaxValue;
+        var closestDistanceSquared = float.MaxValue;
         for (var i = 0; i < scene.Objects.Count; i++)
         {
             var hitpoint = scene.Objects[i].Intersect(ray);
@@ -68,20 +88,20 @@ public class RayTracingRenderer(int raysPerPixel)
             }
 
             var distance = Vector3.DistanceSquared(ray.Origin, hitpoint!.Position);
-            if (distance < closestDistance)
+            if (distance < closestDistanceSquared)
             {
                 closestHitpoint = hitpoint;
-                closestDistance = distance;
+                closestDistanceSquared = distance;
             }
         }
 
         return closestHitpoint;
     }
 
-    public Vector3 GetColor(Scene scene, Vector2 pixel, int height, int width)
+    public static Vector3 GetColor(Scene scene, Vector2 pixel, int raysPerPixel, int height, int width)
     {
         var screenSpace = RenderingUtils.PixelToScreenProjectionSpace((int)pixel.X, (int)pixel.Y, width, height);
-        var rays = this.CreateEyeRays(
+        var rays = CreateEyeRays(
                 scene.CameraPosition,
                 scene.LookAtPosition,
                 scene.Up,
@@ -90,7 +110,8 @@ public class RayTracingRenderer(int raysPerPixel)
                 screenSpace,
                 2f / width,
                 2f / height,
-                scene.Gauss_Sigma);
+                scene.Gauss_Sigma,
+                raysPerPixel);
         var summedColor = new Vector3();
         var pRecursion = 1f / scene.NumberOfBounces;
         foreach (var ray in rays)
@@ -98,7 +119,7 @@ public class RayTracingRenderer(int raysPerPixel)
             summedColor += GetColorRecursive(scene, ray, pRecursion);
         }
 
-        return summedColor / this.raysPerPixel;
+        return summedColor / raysPerPixel;
     }
 
     public static Vector3 GetColorRecursive(Scene scene, Ray ray, float pRecursion, int depth = 0)
@@ -115,66 +136,67 @@ public class RayTracingRenderer(int raysPerPixel)
         {
             return closestHitPoint.HitObject.Material.GetEmission(closestHitPoint);
         }
-        else
+
+        if (closestHitPoint.HitObject.Material.HasRefraction)
         {
-            if (closestHitPoint.HitObject.Material.HasRefraction)
-            {
-                var isReflection = false;
-                var cosine = Vector3.Dot(ray.Direction, closestHitPoint.SurfaceNormal);
-                var oldRefractionIndex = 1.0f; // air
-                if (ray.ComingFromGeometry != null)
-                {
-                    oldRefractionIndex = ray.ComingFromGeometry.Material.RefractionIndex;
-                }
-                var newRefractionIndex = closestHitPoint.HitObject.Material.RefractionIndex;
-                if (cosine > 0)
-                {
-                    newRefractionIndex = 1.0f; //air
-                }
-                var quotient = oldRefractionIndex / newRefractionIndex;
-                if (newRefractionIndex > oldRefractionIndex)
-                {
-                    var criticalAngle = MathF.Asin(newRefractionIndex / oldRefractionIndex);
-                    var isTotalInternalReflection = MathF.Abs(criticalAngle) < MathF.Abs(MathF.Acos(cosine));
-                    isReflection = GetIsReflection(oldRefractionIndex, newRefractionIndex, isTotalInternalReflection, cosine);
-                }
-
-                if (!isReflection)
-                {
-                    var refractedDirection = quotient * ray.Direction + (((quotient * cosine) - MathF.Sqrt(1 - (quotient * quotient * (1 - (cosine * cosine))))) * closestHitPoint.SurfaceNormal);
-                    var inDirection = ray.Direction;
-                    var refractedRay = new Ray(closestHitPoint.Position, Vector3.Normalize(refractedDirection), closestHitPoint.HitObject);
-                    return MathF.PI * closestHitPoint.HitObject.Material.BRDFS(ref inDirection, ref refractedDirection, closestHitPoint) * GetColorRecursive(scene, refractedRay, pRecursion, depth + 1);
-                }
-                else
-                {
-                    var reflectedDirection = Vector3.Normalize(Vector3.Reflect(ray.Direction, closestHitPoint.SurfaceNormal));
-                    var reflectedRay = new Ray(closestHitPoint.Position, Vector3.Normalize(reflectedDirection), closestHitPoint.HitObject);
-                    var inDirection = ray.Direction;
-                    return MathF.PI * closestHitPoint.HitObject.Material.BRDFS(ref inDirection, ref reflectedDirection, closestHitPoint) * GetColorRecursive(scene, reflectedRay, pRecursion, depth + 1);
-                }
-            }
-            else
-            {
-                var result = new Vector3();
-                var randomVector = GetRandomVector();
-                if (Vector3.Dot(randomVector, closestHitPoint.SurfaceNormal) < 0)
-                {
-                    randomVector = -randomVector;
-                }
-
-                randomVector = Vector3.Normalize(randomVector);
-                var direction = ray.Direction;
-
-                result += closestHitPoint.HitObject.Material.GetEmission(closestHitPoint) +
-                    (2f * MathF.PI / (1f - pRecursion)
-                    * Vector3.Dot(randomVector, closestHitPoint.SurfaceNormal)
-                    * closestHitPoint.HitObject.Material.BRDFS(ref randomVector, ref direction, closestHitPoint)
-                    * GetColorRecursive(scene, new Ray(closestHitPoint.Position, randomVector), pRecursion, depth + 1));
-
-                return result;
-            }
+            return HandleRefraction(scene, ray, pRecursion, depth, closestHitPoint!);
         }
+
+        var result = new Vector3();
+        var randomVector = GetRandomVector();
+        var dot = Vector3.Dot(randomVector, closestHitPoint.SurfaceNormal);
+        if (dot < 0)
+        {
+            randomVector = -randomVector;
+            dot = -dot;
+        }
+
+        randomVector = Vector3.Normalize(randomVector);
+        var direction = ray.Direction;
+
+        result += closestHitPoint.HitObject.Material.GetEmission(closestHitPoint) +
+            (2f * MathF.PI / (1f - pRecursion)
+            * dot
+            * closestHitPoint.HitObject.Material.BRDFS(ref randomVector, ref direction, closestHitPoint)
+            * GetColorRecursive(scene, new Ray(closestHitPoint.Position, randomVector), pRecursion, depth + 1));
+
+        return result;
+    }
+
+    private static Vector3 HandleRefraction(Scene scene, Ray ray, float pRecursion, int depth, HitPoint closestHitPoint)
+    {
+        var isReflection = false;
+        var cosine = Vector3.Dot(ray.Direction, closestHitPoint.SurfaceNormal);
+        var oldRefractionIndex = 1.0f; // air
+        if (ray.ComingFromGeometry != null)
+        {
+            oldRefractionIndex = ray.ComingFromGeometry.Material.RefractionIndex;
+        }
+        var newRefractionIndex = closestHitPoint.HitObject.Material.RefractionIndex;
+        if (cosine > 0)
+        {
+            newRefractionIndex = 1.0f; //air
+        }
+        var quotient = oldRefractionIndex / newRefractionIndex;
+        if (newRefractionIndex > oldRefractionIndex)
+        {
+            var criticalAngle = MathF.Asin(newRefractionIndex / oldRefractionIndex);
+            var isTotalInternalReflection = MathF.Abs(criticalAngle) < MathF.Abs(MathF.Acos(cosine));
+            isReflection = GetIsReflection(oldRefractionIndex, newRefractionIndex, isTotalInternalReflection, cosine);
+        }
+
+        var inDirection = ray.Direction;
+        if (!isReflection)
+        {
+            var refractedDirection = quotient * ray.Direction + (((quotient * cosine) - MathF.Sqrt(1 - (quotient * quotient * (1 - (cosine * cosine))))) * closestHitPoint.SurfaceNormal);
+            var refractedRay = new Ray(closestHitPoint.Position, Vector3.Normalize(refractedDirection), closestHitPoint.HitObject);
+            return MathF.PI * closestHitPoint.HitObject.Material.BRDFS(ref inDirection, ref refractedDirection, closestHitPoint) * GetColorRecursive(scene, refractedRay, pRecursion, depth + 1);
+        }
+
+        var reflectedDirection = Vector3.Normalize(Vector3.Reflect(ray.Direction, closestHitPoint.SurfaceNormal));
+        var reflectedRay = new Ray(closestHitPoint.Position, Vector3.Normalize(reflectedDirection), closestHitPoint.HitObject);
+
+        return MathF.PI * closestHitPoint.HitObject.Material.BRDFS(ref inDirection, ref reflectedDirection, closestHitPoint) * GetColorRecursive(scene, reflectedRay, pRecursion, depth + 1);
     }
 
     private static bool GetIsReflection(float oldRefractionIndex, float newRefractionIndex, bool isTotalInternalReflection, float cosIncoming)
@@ -198,7 +220,7 @@ public class RayTracingRenderer(int raysPerPixel)
                 (2 * Random.Shared.NextSingle()) - 1,
                 (2 * Random.Shared.NextSingle()) - 1,
                 (2 * Random.Shared.NextSingle()) - 1);
-        while (randomVect.Length() > 1)
+        while (randomVect.LengthSquared() > 1)
         {
             randomVect = new Vector3(
                     (2 * Random.Shared.NextSingle()) - 1,
@@ -218,3 +240,4 @@ public class RayTracingRenderer(int raysPerPixel)
         return y1 * stddev + mean;
     }
 }
+
