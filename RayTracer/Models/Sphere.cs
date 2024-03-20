@@ -22,37 +22,39 @@ public class Sphere : IGeometry
         this.Material = material;
     }
 
-    public List<HitPoint> Intersect(Ray ray)
+    public HitPoint? Intersect(Ray ray)
     {
-        var hitpoints = new List<HitPoint>();
+        float? smallestValidLambda = null;
         var b = 2 * Vector3.Dot(ray.Origin - this.Position, ray.Direction);
         var c = Vector3.DistanceSquared(ray.Origin, this.Position) - MathF.Pow(this.Radius, 2);
         var b_squared = b * b;
         var quotient = 4 * c;
         if (b_squared < quotient)
         {
-            return hitpoints;
+            return null;
         }
-        else
-        {
-            var sqrt = MathF.Sqrt(b_squared - quotient);
-            var lambda_1 = (-b + sqrt) / 2;
-            if (lambda_1 > 0 && lambda_1 > EPSILON)
-            {
-                var hitLocation1 = ray.Origin + ((lambda_1 - EPSILON) * ray.Direction);
-                hitpoints.Add(new HitPoint(hitLocation1, this, Vector3.Normalize(hitLocation1 - this.Position)));
-            }
-            if (b_squared > quotient)
-            {
-                var lambda_2 = (-b - sqrt) / 2;
-                if (lambda_2 > 0 && lambda_2 > EPSILON)
-                {
-                    var hitLocation2 = ray.Origin + ((lambda_2 - EPSILON) * ray.Direction);
-                    hitpoints.Add(new HitPoint(hitLocation2, this, Vector3.Normalize(hitLocation2 - this.Position)));
-                }
-            }
 
-            return hitpoints;
+        var sqrt = MathF.Sqrt(b_squared - quotient);
+        var lambda = (-b + sqrt) / 2;
+        if (lambda > 0 && lambda > EPSILON)
+        {
+            smallestValidLambda = lambda;
         }
+
+        if (b_squared > quotient)
+        {
+            var lambda_2 = (-b - sqrt) / 2;
+            if (lambda_2 > 0 && lambda_2 > EPSILON)
+            {
+                smallestValidLambda = MathF.Min(smallestValidLambda ?? float.MaxValue, lambda_2);
+            }
+        }
+
+        if (smallestValidLambda != null)
+        {
+            var hitLocation = ray.Origin + ((smallestValidLambda!.Value - EPSILON) * ray.Direction);
+            return new HitPoint(hitLocation, this, Vector3.Normalize(hitLocation - this.Position));
+        }
+        return null;
     }
 }

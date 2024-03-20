@@ -57,19 +57,25 @@ public class RayTracingRenderer(int raysPerPixel)
 
     public static HitPoint? FindClosestHitPoint(Scene scene, Ray ray)
     {
-        var hitpoints = new List<HitPoint>();
-        scene.Objects.ForEach(o => hitpoints.AddRange(o.Intersect(ray)));
-
-        if (hitpoints.Count == 0)
+        HitPoint? closestHitpoint = null;
+        var closestDistance = float.MaxValue;
+        for (var i = 0; i < scene.Objects.Count; i++)
         {
-            return null;
+            var hitpoint = scene.Objects[i].Intersect(ray);
+            if (hitpoint == null)
+            {
+                continue;
+            }
+
+            var distance = Vector3.DistanceSquared(ray.Origin, hitpoint!.Position);
+            if (distance < closestDistance)
+            {
+                closestHitpoint = hitpoint;
+                closestDistance = distance;
+            }
         }
 
-        return hitpoints.ToDictionary(
-                        h => h,
-                        h => Vector3
-                                .DistanceSquared(ray.Origin, h.Position))
-                                .MinBy(x => x.Value).Key;
+        return closestHitpoint;
     }
 
     public Vector3 GetColor(Scene scene, Vector2 pixel, int height, int width)

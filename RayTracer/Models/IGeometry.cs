@@ -1,5 +1,3 @@
-
-using System.Collections.Generic;
 using System.Numerics;
 using RayTracer.Materials;
 using RayTracer.Rendering;
@@ -11,5 +9,5 @@ public interface IGeometry
 
     public IMaterial Material { get; }
 
-    List<HitPoint> Intersect(Ray ray);
+    HitPoint? Intersect(Ray ray);
 }
