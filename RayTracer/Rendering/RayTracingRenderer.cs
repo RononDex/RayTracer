@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using RayTracer.Models;
+using RayTracer.Geometry;
 
 namespace RayTracer.Rendering;
 
@@ -196,7 +196,7 @@ public class RayTracingRenderer()
         var reflectedDirection = Vector3.Normalize(Vector3.Reflect(ray.Direction, closestHitPoint.SurfaceNormal));
         var reflectedRay = new Ray(closestHitPoint.Position, Vector3.Normalize(reflectedDirection), closestHitPoint.HitObject);
 
-        return MathF.PI * closestHitPoint.HitObject.Material.BRDFS(ref inDirection, ref reflectedDirection, closestHitPoint) * GetColorRecursive(scene, reflectedRay, pRecursion, depth + 1);
+        return GetColorRecursive(scene, reflectedRay, pRecursion, depth + 1);
     }
 
     private static bool GetIsReflection(float oldRefractionIndex, float newRefractionIndex, bool isTotalInternalReflection, float cosIncoming)

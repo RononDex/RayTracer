@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using RayTracer.Geometry;
 using RayTracer.Materials;
-using RayTracer.Models;
 
 namespace RayTracer;
 
@@ -14,7 +14,7 @@ public static class SceneBuilder
         var eyePosition = new Vector3(0, 0, -4);
         var lookAt = new Vector3(0, 0, 6);
         var fov = 36f * (float)Math.PI / 180f;
-        var scene = new Scene(new List<IGeometry> {
+        var scene = new Scene(new List<IRenderable> {
                         // a: Left wall (red)
                         new Sphere(new Vector3(-1001, 0, 0), 1000, new LambertMaterial(new Vector3(0.95f, 0.1f, 0.1f))),
 
@@ -45,7 +45,7 @@ public static class SceneBuilder
         var eyePosition = new Vector3(0, 0, -4);
         var lookAt = new Vector3(0, 0, 6);
         var fov = 36f * (float)Math.PI / 180f;
-        var scene = new Scene(new List<IGeometry> {
+        var scene = new Scene(new List<IRenderable> {
                         // a: Left wall (red)
                         new Sphere(new Vector3(-1001, 0, 0), 1000, new LambertMaterial(new Vector3(0.95f, 0.1f, 0.1f))),
 
@@ -76,7 +76,7 @@ public static class SceneBuilder
         var eyePosition = new Vector3(0, 0, -4);
         var lookAt = new Vector3(0, 0, 6);
         var fov = 36f * (float)Math.PI / 180f;
-        var scene = new Scene(new List<IGeometry> {
+        var scene = new Scene(new List<IRenderable> {
                         // a: Left wall (red)
                         new Sphere(new Vector3(-1001, 0, 0), 1000, new LambertMaterial(new Vector3(0.95f, 0.1f, 0.1f))),
 
@@ -112,7 +112,7 @@ public static class SceneBuilder
         var jupiterRotation = Matrix4x4.CreateRotationY(0);
         var earthRotation = Matrix4x4.CreateRotationY(MathF.PI / 2);
 
-        var scene = new Scene(new List<IGeometry> {
+        var scene = new Scene(new List<IRenderable> {
                         // Milkyway bg
                         new Sphere(new Vector3(0.0f, 0.0f, 0.0f), 1000f, new TextureMaterial(null, pathToEmissionTexture: "Textures/Milkyway.jpg", textureTransformation: milkyWayRotation, emissionMultiplier: 1.0f)),
 
@@ -156,7 +156,7 @@ public static class SceneBuilder
         var jupiterPos = new Vector3(-1.0f, -0.25f, 8.2f);
         var sunPos = new Vector3(25f, 0f, -15f);
 
-        var scene = new Scene(new List<IGeometry> {
+        var scene = new Scene(new List<IRenderable> {
                         // Milkyway bg
                         new Sphere(new Vector3(0.0f, 0.0f, 0.0f), 1000f, new TextureMaterial(null, pathToEmissionTexture: "Textures/Milkyway.jpg", textureTransformation: milkyWayRotation, emissionMultiplier: 1.0f)),
 
@@ -185,7 +185,7 @@ public static class SceneBuilder
         var eyePosition = new Vector3(0, 0, -4);
         var lookAt = new Vector3(0, 0, 6);
         var fov = 36f * (float)Math.PI / 180f;
-        var scene = new Scene(new List<IGeometry> {
+        var scene = new Scene(new List<IRenderable> {
                         // a: Left wall (red)
                         new Sphere(new Vector3(-1001, 0, 0), 1000, new LambertMaterial(new Vector3(0.95f, 0.1f, 0.1f))),
 
@@ -208,8 +208,45 @@ public static class SceneBuilder
                         new Sphere(new Vector3(0.3f, -0.4f, 0.3f), 0.6f, new TextureMaterial("Textures/4k_haumea_fictional.jpg",emissionMultiplier: 15f)),
 
                         // Smaller lense sphere in front
-                        new Sphere(new Vector3(0.6f, -0.8f, -0.6f), 0.2f, new TransparentMaterial(1.1f, new LambertMaterial(new Vector3(0.6f, 0.9f, 0.9f)))),
-                        new Sphere(new Vector3(-0.1f, -0.7f, -0.7f), 0.3f, new TransparentMaterial(1.4f, new LambertMaterial(new Vector3(0.9f, 0.3f, 0.3f)))),
+                        new Sphere(new Vector3(0.6f, -0.8f, -0.6f), 0.2f, new TransparentMaterial(1.4f, new LambertMaterial(new Vector3(0.6f, 0.9f, 0.9f)))),
+                        new Sphere(new Vector3(-0.1f, -0.7f, -0.7f), 0.3f, new TransparentMaterial(1.9f, new LambertMaterial(new Vector3(0.9f, 0.3f, 0.3f)))),
+    }, eyePosition, lookAt, fov, new Vector3(0f, 1f, 0f))
+        {
+            NumberOfBounces = 6
+        };
+
+        return scene;
+    }
+
+    public static Scene OpticsTestingScene()
+    {
+        var eyePosition = new Vector3(0, 0, -4);
+        var lookAt = new Vector3(0, -2, 6);
+        var fov = 36f * (float)Math.PI / 180f;
+        var scene = new Scene(new List<IRenderable> {
+                        // a: Left wall (red)
+                        new Sphere(new Vector3(-1001, 0, 0), 1000, new LambertMaterial(new Vector3(0.95f, 0.1f, 0.1f))),
+
+                        // b: Right wall (blue)
+                        new Sphere(new Vector3(1001, 0, 0), 1000, new LambertMaterial(new Vector3(0.1f, 0.1f, 0.95f))),
+
+                        // c: Back wall (black)
+                        new Sphere(new Vector3(0, 0, 1001), 1000, new LambertMaterial(new Vector3(0.05f, 0.05f, 0.05f))),
+
+                        // d: Bottom wall (gray)
+                        new Sphere(new Vector3(0, -1001, 0), 1000, new LambertMaterial(new Vector3(0.2f, 0.2f, 0.2f))),
+
+                        // e: Top wall (light)
+                        new Sphere(new Vector3(0, 1001, 0), 1000, new LambertMaterial(new Vector3(0.8f, 0.8f, 0.8f), emissionColor: new Vector3(2f))),
+
+                        new BooleanAndCombinations(new HashSet<IGeometry>
+                        {
+                            new Sphere(new Vector3(0, -0.8f, -0.3f), 0.27f),
+                            new Sphere(new Vector3(0, -0.5f, -0.3f), 0.3f)
+                        }, new TransparentMaterial(1.4f)),
+
+
+
     }, eyePosition, lookAt, fov, new Vector3(0f, 1f, 0f))
         {
             NumberOfBounces = 6

@@ -13,6 +13,10 @@ The RayTracer is written as part of my Studies at FHNW as part of the lectures "
 * Transparency (Refraction and Reflection)
 * Rendering of Primitive shapes:
   * Spheres
+* Boolean operators on geometry:
+  * And
+  * Or (WIP)
+  * Not (WIP)
 * Multi Platform (Runs on Linux, Windows and Mac)
 * Live View of the rendering progress
 

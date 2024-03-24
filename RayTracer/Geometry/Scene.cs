@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace RayTracer.Models;
+namespace RayTracer.Geometry;
 
 public class Scene
 {
-    public List<IGeometry> Objects { get; private set; }
+    public List<IRenderable> Objects { get; private set; }
 
     public float FieldOfView { get; private set; }
 
@@ -19,7 +19,7 @@ public class Scene
     public float NumberOfBounces { get; set; } = 4f;
     public float Gauss_Sigma { get; set; } = 0.5f;
 
-    public Scene(List<IGeometry> objects, Vector3 cameraPosition, Vector3 lookAtPosition, float fov, Vector3 up)
+    public Scene(List<IRenderable> objects, Vector3 cameraPosition, Vector3 lookAtPosition, float fov, Vector3 up)
     {
         this.Objects = objects;
         this.FieldOfView = fov;

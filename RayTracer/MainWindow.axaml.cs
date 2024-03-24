@@ -6,7 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using RayTracer.Models;
+using RayTracer.Geometry;
 using RayTracer.Rendering;
 using SixLabors.ImageSharp;
 using Color = Avalonia.Media.Color;
@@ -27,17 +27,17 @@ public partial class MainWindow : Window
 
         this.Background = new SolidColorBrush(new Color(255, 0, 0, 0));
 
-        var scene = SceneBuilder.CornellBoxTransparency();
+        var scene = SceneBuilder.OpticsTestingScene();
 
         Console.WriteLine("Starting rendering scene...");
         var renderer = new RayTracingRenderer();
-        const int width = 512;
-        const int height = 512;
-        const int raysPerPixel = 1000;
+        const int width = 1024;
+        const int height = 1024;
+        const int raysPerPixel = 4000;
 
         this.timer = new Timer((e) => this.UpdateUIWithRendering(renderer, scene, raysPerPixel, width, height), state: null, TimeSpan.FromMilliseconds(0), TimeSpan.FromMilliseconds(200));
         this.renderingStart = DateTime.Now;
-        this.imageRenderingTask = renderer.RenderSceneAsync(scene, raysPerPixel, width, height, Environment.ProcessorCount - 1);
+        this.imageRenderingTask = renderer.RenderSceneAsync(scene, raysPerPixel, width, height, Environment.ProcessorCount);
     }
 
     public void UpdateUIWithRendering(RayTracingRenderer renderer, Scene scene, int raysPerPixel, int width, int height)
@@ -58,8 +58,9 @@ public partial class MainWindow : Window
             if (this.imageRenderingTask.IsCompleted && !this.saved)
             {
                 var renderingTime = DateTime.Now - this.renderingStart;
+                long nRays = (long)raysPerPixel * (long)width * (long)height;
                 Console.WriteLine($"Rendering finished after {renderingTime.TotalMinutes:0.###} minutes");
-                Console.WriteLine($"Averaged {(int)(raysPerPixel * width * height / renderingTime.TotalSeconds)} rays/s and {(int)(raysPerPixel * scene.NumberOfBounces * width * height / renderingTime.TotalSeconds)} bounces/s");
+                Console.WriteLine($"Averaged {(long)(nRays / renderingTime.TotalSeconds)} rays/s and {(long)(nRays * (long)scene.NumberOfBounces / renderingTime.TotalSeconds)} bounces/s");
                 this.saved = true;
                 image.SaveAsPng("Rendering_" + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".png");
                 this.timer.Dispose();
